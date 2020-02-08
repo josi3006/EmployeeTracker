@@ -109,15 +109,11 @@ function viewData() {
 // This function displays data the user requested to VIEW
 
 function viewQuery(viewType) {
-    // var query = "SELECT * FROM ?";
     connection.query('SELECT * FROM ' + viewType, function (err, res) {
 
-        console.log('Here are all the Things!');
         console.table(res);
 
-        taskPrompt();
-
-        // return process.exit(22);
+        nowWhat();
 
     })
 }
@@ -159,7 +155,7 @@ function delData() {
 
                 case 'I\'d like to Quit':
                     console.log('Quitter.');
-                    taskPrompt();
+                    nowWhat();
                     break;
 
                 default: console.log('Please enter a valid value');
@@ -171,18 +167,17 @@ function delData() {
 
 
 
-
-
 // This function DELETES the department or role the user chose
 
 function deleteFunc(query) {
 
-    console.log('in delete role or dept function: ' + query);
-
-
     connection.query(query, function (err, res) {
         if (err) throw err;
+
         console.table(res);
+
+        nowWhat();
+
     });
 }
 
@@ -214,12 +209,11 @@ function deleteEmpl(query) {
             connection.query(query, function (err, res) {
                 if (err) throw err;
                 console.table(res);
+                nowWhat();
             });
 
         })
 }
-
-
 
 
 
@@ -257,7 +251,7 @@ function addData() {
 
                 case 'Quit':
                     console.log('Quitter.');
-                    taskPrompt();
+                    nowWhat();
                     break;
             }
         });
@@ -265,7 +259,7 @@ function addData() {
 
 
 
-
+// This function ADDS a new Department
 
 function addDept() {
     inquirer
@@ -278,58 +272,154 @@ function addDept() {
 
             var query = 'INSERT INTO departments (deptname) VALUES (?);';
 
-            // INSERT INTO departments (deptname) VALUES ('Marketing');
-
             connection.query(query, [answer.deptname], function (err, res) {
                 if (err) throw err;
                 console.table(res);
             });
 
-            taskPrompt();
-
         })
 }
 
 
-// This function prompts user for data to DELETE
+
+// This function ADDS a new Role
+
+function addRole() {
+
+    const deptQuery = 'SELECT * from departments;'
+
+    connection.query(deptQuery, function (err, res) {
+        if (err) throw err;
+
+
+        const deptArr = res.map(item => item.deptname);
+
+        inquirer
+            .prompt([
+                {
+                    message: 'What is the name of the new Role?',
+                    name: 'roletitle'
+                },
+                {
+                    message: 'What is the salary for the new Role?',
+                    name: 'salary'
+                },
+                {
+                    name: 'deptid',
+                    type: 'list',
+                    message: 'Which Department does this role belong in?',
+                    choices: deptArr
+                }
+
+            ]).then(function (answer) {
+
+                var whichid = res.filter(item => item.deptname === answer.deptid);
+
+                var query = 'INSERT INTO roles (roletitle, salary, deptid) VALUES (?, ?, ?);';
+
+                connection.query(query, [answer.roletitle, answer.salary, whichid[0].id], function (err, res) {
+                    if (err) throw err;
+
+                    nowWhat();
+
+                });
+
+            })
+    })
+}
+
+
+// This function ADDS a new Employee
+
+function addEmpl() {
+
+    const mgrQuery = 'SELECT * FROM employees WHERE roleid = (SELECT id FROM roles WHERE roletitle = "Manager");';
+
+    connection.query(mgrQuery, function (err, response) {
+        if (err) throw err;
+
+        const mgrArr = response.map(item => item.firstname);
 
 
 
-// // This function displays data the user requested
+        const roleQuery = 'SELECT * FROM roles';
 
-// function delQuery(delTable, delName) {
-//     console.log('at top: ' + delTable);
-//     console.log('at top: ' + delName);
+        connection.query(roleQuery, function (err, result) {
+            if (err) throw err;
+
+            const roleArr = result.map(item => item.roletitle);
+
+            inquirer
+                .prompt([
+                    {
+                        message: 'What is the employee\'s First Name?',
+                        name: 'first'
+                    },
+                    {
+                        message: 'What is the employee\'s Last Name?',
+                        name: 'last'
+                    },
+                    {
+                        name: 'roleid',
+                        type: 'list',
+                        message: 'What is the employee\'s Role?',
+                        choices: roleArr
+                    },
+                    {
+                        name: 'managerid',
+                        type: 'list',
+                        message: 'Who is the employee\'s Manager?',
+                        choices: mgrArr
+                    }
+
+                ]).then(function (answer) {
+
+                    var whichMgr = response.filter(item => item.firstname === answer.managerid);
+                    var whichRole = result.filter(data => data.roletitle === answer.roleid);
+
+                    var query = 'INSERT INTO employees (firstname, lastname, roleid, managerid) VALUES (?, ?, ?, ?);';
+
+                    connection.query(query, [answer.first, answer.last, whichRole[0].id, whichMgr[0].id], function (err, res) {
+                        if (err) throw err;
+
+                        console.log('Name is: ' + answer.first + ' ' + answer.last);
+                        console.log('Role id is: ' + whichRole[0].id);
+                        console.log('Manager id is: ' + whichMgr[0].id);
+                    });
+
+                    nowWhat();
+                })
+        })
+    }
+
+    )
+}
 
 
-//     inquirer
-//         .prompt({
-//             name: 'drop',
-//             type: 'input',
-//             message: 'Which ' + delName + ' do you want to DELETE from ' + delTable + '?'
-//         })
-//         .then(function (answer, delTable, delName) {
+// This function routes user based on input
 
-//             console.log('at query ' + delTable);
-//             console.log('at query ' + delName);
-//             console.log('at query ' + answer.drop);
+function nowWhat() {
+    inquirer.prompt({
+        name: 'whatToDo',
+        type: 'list',
+        message: 'What would you like to do now?',
+        choices: [
+            'Start Over',
+            'Quit'
+        ]
+    })
+        .then(function (answer) {
+            switch (answer.action) {
+                case 'Start Over':
+                    taskPrompt();
+                    break;
 
-//             const delData = 'SET SQL_SAFE_UPDATES=0;' +
-//                 'DELETE FROM ' + delTable + ' WHERE ' + delName + ' = ' + answer.drop +
-//                 '; SET SQL_SAFE_UPDATES=1;';
+                case 'Quit':
+                    console.log('Quitter.')
+                    console.log('----------------------');
+                    taskPrompt();
 
-//             connection.query(delData, function (err, res) {
-//                 if (err) throw err;
-
-
-//                 console.log('Successfully deleted ' + answer.drop);
-
-//                 taskPrompt();
-
-//                 // return process.exit(22);
-
-//             })
-//         })
-// }
-
+            }
+        })
+}
 
