@@ -225,61 +225,70 @@ function deleteEmpl(query) {
 
 // This function prompts the user for data to ADD
 
-// function addData() {
-//     inquirer
-//         .prompt({
-//             name: 'action',
-//             type: 'rawlist',
-//             message: 'Would you like to ADD a Department, Role or Employee?',
-//             choices: [
-//                 'Add a new Department',
-//                 'Add a new Role',
-//                 'Add a new Employee',
-//                 'Quit'
-//             ]
-//         })
-//         .then(function (answer) {
-//             switch (answer.action) {
-//                 case 'Add a new Department':
-//                     var viewType = 'departments';
-//                     viewQuery(viewType);
-//                     break;
+function addData() {
+    inquirer
+        .prompt({
+            name: 'action',
+            type: 'rawlist',
+            message: 'Would you like to ADD a Department, Role or Employee?',
+            choices: [
+                'Add a new Department',
+                'Add a new Role',
+                'Add a new Employee',
+                'Quit'
+            ]
+        })
+        .then(function (answer) {
+            switch (answer.action) {
+                case 'Add a new Department':
+                    var addType = 'departments';
+                    addDept(addType);
+                    break;
 
-//                 case 'Add a new Role':
-//                     var viewType = 'roles';
-//                     viewQuery(viewType);
-//                     break;
+                case 'Add a new Role':
+                    var addType = 'roles';
+                    addRole(addType);
+                    break;
 
-//                 case 'Add a new Employee':
-//                     var viewType = 'employees';
-//                     viewQuery(viewType);
-//                     break;
+                case 'Add a new Employee':
+                    var addType = 'employees';
+                    addEmpl(addType);
+                    break;
 
-//                 case 'Quit':
-//                     console.log('Quitter.');
-//                     taskPrompt();
-//                     break;
-//             }
-//         });
-// }
-
-
+                case 'Quit':
+                    console.log('Quitter.');
+                    taskPrompt();
+                    break;
+            }
+        });
+}
 
 
 
-// function viewQuery(viewType) {
-//     // var query = "SELECT * FROM ?";
-//     connection.query('SELECT * FROM ' + viewType, function (err, res) {
 
-//         console.log('Here are all the Things!');
-//         console.table(res);
 
-//         taskPrompt();
+function addDept() {
+    inquirer
+        .prompt([
+            {
+                message: 'What is the name of the new Department?',
+                name: 'deptname'
+            }
+        ]).then(function (answer) {
 
-//         // return process.exit(22);
+            var query = 'INSERT INTO departments (deptname) VALUES (?);';
 
-//     })   
-// }
+            // INSERT INTO departments (deptname) VALUES ('Marketing');
+
+            connection.query(query, [answer.deptname], function (err, res) {
+                if (err) throw err;
+                console.table(res);
+            });
+
+            taskPrompt();
+
+        })
+}
 
 
 // This function prompts user for data to DELETE
