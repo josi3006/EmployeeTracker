@@ -385,9 +385,10 @@ function addEmpl() {
                         console.log('Name is: ' + answer.first + ' ' + answer.last);
                         console.log('Role id is: ' + whichRole[0].id);
                         console.log('Manager id is: ' + whichMgr[0].id);
+
+                        nowWhat();
                     });
 
-                    nowWhat();
                 })
         })
     }
@@ -409,13 +410,13 @@ function nowWhat() {
         ]
     })
         .then(function (answer) {
-            switch (answer.action) {
+            switch (answer.whatToDo) {
                 case 'Start Over':
                     taskPrompt();
                     break;
 
                 case 'Quit':
-                    console.log('Quitter.')
+                    console.log('Quitter.');
                     console.log('----------------------');
                     taskPrompt();
 
