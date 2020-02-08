@@ -14,17 +14,14 @@ const connection = mysql.createConnection({
 
 
 
-
-
-
-
-
 connection.connect(function (err) {
     if (err) throw err;
     taskPrompt();
 });
 
 
+
+// This function prompts the user for what they want to do
 
 function taskPrompt() {
     inquirer
@@ -109,7 +106,7 @@ function viewData() {
 }
 
 
-// This function displays data the user requested
+// This function displays data the user requested to VIEW
 
 function viewQuery(viewType) {
     // var query = "SELECT * FROM ?";
@@ -123,6 +120,103 @@ function viewQuery(viewType) {
         // return process.exit(22);
 
     })
+}
+
+
+
+// This function prompts the user for data to DELETE
+
+function delData() {
+    inquirer
+        .prompt([{
+            name: 'table',
+            type: 'list',
+            message: 'What would you like to DELETE?',
+            choices: [
+                'Department',
+                'Role',
+                'Employee',
+                'I\'d like to Quit'
+            ]
+        }])
+        .then(function (answer) {
+
+            switch (answer.table) {
+                case 'Department':
+                    var query = 'DELETE FROM departments WHERE deptname = "' + answer.row + '";';
+                    deleteFunc(query);
+                    break;
+
+                case 'Role':
+                    var query = 'DELETE FROM roles WHERE roletitle = "' + answer.row + '";';
+                    deleteFunc(query);
+                    break;
+
+                case 'Employee':
+                    var query = 'DELETE FROM employees WHERE lastname = "' + answer.row + '";';
+                    deleteEmpl(query);
+                    break;
+
+                case 'I\'d like to Quit':
+                    console.log('Quitter.');
+                    taskPrompt();
+                    break;
+
+                default: console.log('Please enter a valid value');
+                    delData();
+                    break;
+            }
+        })
+}
+
+
+
+
+
+// This function DELETES the department or role the user chose
+
+function deleteFunc(query) {
+
+    console.log('in delete role or dept function: ' + query);
+
+
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        console.table(res);
+    });
+}
+
+
+
+// This function DELETES the employee the user chose
+
+function deleteEmpl(query) {
+    inquirer
+        .prompt([
+            {
+                name: 'first',
+                type: 'input',
+                message: 'What is the employee\'s First name??'
+            },
+            {
+                name: 'last',
+                type: 'input',
+                message: 'What is the employee\'s Last name??'
+            }
+        ])
+        .then(function (answer) {
+
+            var first = answer.first;
+            var last = answer.last;
+
+            var query = 'DELETE FROM employees WHERE firstname = "' + first + '" AND lastname = "' + last + '";';
+
+            connection.query(query, function (err, res) {
+                if (err) throw err;
+                console.table(res);
+            });
+
+        })
 }
 
 
@@ -190,61 +284,6 @@ function viewQuery(viewType) {
 
 // This function prompts user for data to DELETE
 
-function delData() {
-    inquirer
-        .prompt([{
-            name: 'bucket',
-            type: 'list',
-            message: 'What would you like to DELETE?',
-            choices: [
-                'Department',
-                'Role',
-                'Employee',
-                'I\'d like to Quit'
-            ]
-        },
-        {
-            name: 'drop',
-            type: 'input',
-            message: 'Which one would you like to delete?'
-        }])
-        .then(function (answer) {
-
-            switch (answer.bucket) {
-                case 'Department':
-                    var drop = answer.drop
-                    deleteFunc(answer.bucket, drop);
-                    break;
-
-                case 'Role':
-                    var query = 'SET SQL_SAFE_UPDATES=0;' +
-                        'DELETE FROM roles WHERE roletitle = ' + answer.drop +
-                        '; SET SQL_SAFE_UPDATES=1;';
-
-                    deleteFunc(query);
-                    break;
-
-                case 'Employee':
-                    var query = 'SET SQL_SAFE_UPDATES=0;' +
-                        'DELETE FROM employees WHERE lastname = ' + answer.drop +
-                        '; SET SQL_SAFE_UPDATES=1;';
-
-                    deleteFunc(query);
-                    break;
-
-                case 'I\'d like to Quit':
-                    console.log('Quitter.');
-                    taskPrompt();
-                    break;
-            }
-
-            function deleteFunc(query) {
-                connection.query(query, function (err, res) {
-                    if (err) throw err;
-                });
-            }
-        })
-}
 
 
 // // This function displays data the user requested
