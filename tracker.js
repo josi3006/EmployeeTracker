@@ -34,6 +34,7 @@ function taskPrompt() {
                 'Add a New Employee, Department or Role',
                 'Change an Existing Department, Role or Employee',
                 'Delete a Department, Role or Employee',
+                'Update an employee\'s Role',
                 'Quit'
             ]
         })
@@ -53,6 +54,10 @@ function taskPrompt() {
 
                 case 'Delete a Department, Role or Employee':
                     delData();
+                    break;
+
+                case 'Update an employee\'s Role':
+                    updateEmplRole();
                     break;
 
                 case 'Quit':
@@ -397,7 +402,64 @@ function addEmpl() {
 }
 
 
-// This function routes user based on input
+// This function prompts use to UPDATE info
+
+
+function updateEmplRole() {
+
+    const roleQuery = 'SELECT * FROM roles';
+
+    connection.query(roleQuery, function (err, result) {
+        if (err) throw err;
+
+        const roleArr = result.map(item => item.roletitle);
+
+        inquirer
+            .prompt([
+                {
+                    name: 'first',
+                    type: 'input',
+                    message: 'What is the employee\'s First name??'
+                },
+                {
+                    name: 'last',
+                    type: 'input',
+                    message: 'What is the employee\'s Last name??'
+                },
+                {
+                    name: 'newrole',
+                    type: 'list',
+                    message: 'What should their new Role be',
+                    choices: roleArr
+                }
+            ])
+            .then(function (answer) {
+
+                var first = answer.first;
+                var last = answer.last;
+                var whichRole = result.filter(data => data.roletitle === answer.newrole);
+
+                console.log('this is var that gets passed: ' + whichRole);
+
+                var inputs = [whichRole[0].id, first, last];
+                var query = 'UPDATE employees SET roleid = ? WHERE firstname = ? AND lastname = ?;';
+
+                connection.query(query, inputs, function (err, res) {
+                    if (err) throw err;
+
+                    console.log('Updated ' + first + ' ' + last + ' with role: ' + answer.newrole);
+
+                    console.table(res);
+                    nowWhat();
+                });
+
+            })
+    })
+}
+
+
+
+// This function ends session based on input
 
 function nowWhat() {
     inquirer.prompt({
